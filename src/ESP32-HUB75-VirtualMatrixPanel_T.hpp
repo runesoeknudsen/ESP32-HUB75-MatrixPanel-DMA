@@ -71,6 +71,7 @@ enum PANEL_SCAN_TYPE {
 	FOUR_SCAN_64PX_HIGH,			///< Four-scan mode, 64-pixel high panels.
 	FOUR_SCAN_P8_40_x_20PX_HIGH,	///< P8 outdoor 40x20 module, 1/5 scan.A/B/C address only
 	FOUR_SCAN_5PX_64X32HIGH,		///< P5 outdoor 64x32 1/8-scan, A/B/C address only (HRLOP-P5-1921/V2.0).
+	FOUR_SCAN_64X32_DOUBLE_WIDTH,	///< Four-scan 64x32 panels using double-width DMA mapping. (YS-P5-320X160(PRO)-8S-1921-GYGY-V1)
 };
 
 /**
@@ -229,6 +230,18 @@ struct ScanTypeMapping {
 				coords.x += ((coords.x / panel_pixel_base) * panel_pixel_base);
 			}
 			
+			coords.y = (coords.y >> 4) * 8 + (coords.y & 0b00000111);
+		}
+
+		else if constexpr (ScanType == FOUR_SCAN_64X32_DOUBLE_WIDTH)
+		{
+			coords.x *= 2; // double the x coordinate for 64x32 panels
+
+			// The 4th bit of y determines which quarter of the panel we're in.
+			if((coords.y & 0b00001000) == 0) {
+				coords.x += 1;
+			}
+			// Remove the 4th bit from y and shift down to get the correct row mapping
 			coords.y = (coords.y >> 4) * 8 + (coords.y & 0b00000111);
 		}
 
